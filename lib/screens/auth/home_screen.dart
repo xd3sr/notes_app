@@ -12,8 +12,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, String>> _notes = [
     {
       "title": "ملاحظات المشروع",
-      "content":
-          "إكمال واجهة التطبيق بالوضع الداكن ثم ربط قاعدة البيانات لاحقاً.",
+      "content": "السلام عليكم",
       "date": "18 سبتمبر 2026",
     },
     {
@@ -23,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
-  // دالة فتح النافذة المنبثقة (للإضافة أو التعديل)
   void _showNoteBottomSheet({int? index}) {
     final bool isEditing = index != null;
     final titleController = TextEditingController(
@@ -102,14 +100,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (title.isNotEmpty || content.isNotEmpty) {
                       setState(() {
                         if (isEditing) {
-                          // تحديث الملاحظة الحالية
                           _notes[index] = {
                             "title": title.isEmpty ? "بلا عنوان" : title,
                             "content": content,
                             "date": _notes[index]["date"] ?? "18 سبتمبر 2026",
                           };
                         } else {
-                          // إضافة ملاحظة جديدة في بداية القائمة
                           _notes.insert(0, {
                             "title": title.isEmpty ? "بلا عنوان" : title,
                             "content": content,
@@ -221,7 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      // هنا وضعنا أيقونة التعديل وأيقونة الحذف معاً في صف واحد
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
