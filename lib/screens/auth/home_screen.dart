@@ -1,4 +1,7 @@
+import "dart:convert";
+
 import "package:flutter/material.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -8,19 +11,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // قائمة الملاحظات
-  final List<Map<String, String>> _notes = [
-    {
-      "title": "ملاحظات المشروع",
-      "content": "السلام عليكم",
-      "date": "18 سبتمبر 2026",
-    },
-    {
-      "title": "المهام اليومية",
-      "content": "تجربة شاشة العرض وإضافة زر إنشاء الملاحظة الجديدة.",
-      "date": "18 سبتمبر 2026",
-    },
-  ];
+  List<Map<String, String>> _notes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotes();
+  }
+
+  Future<void> _loadNotes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? notesData = prefs.getString("saved_notes");
+    if (notesData != null) {
+      final List<dynamic> decoded = jsonDecode(notesData);
+      setState(() {
+        _notes = decoded.map((item) => Map<String, String>.from(item)).toList();
+      });
+    } else {
+      setState(() {
+        _notes = [
+          {
+            "title": "ملاحظات المشروع",
+            "content": "السلام عليكم",
+            "date": "2026/09/19 - 05:50 ص",
+          },
+          {
+            "title": "المهام اليومية",
+            "content": "تجربة شاشة العرض وإضافة زر إنشاء الملاحظة الجديدة",
+            "date": "2026/09/19 - 05:50 ص",
+          },
+        ];
+      });
+    }
+  }
+
+  Future<void> _saveNotes() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("saved_notes", jsonEncode(_notes));
+  }
 
   void _showNoteBottomSheet({int? index}) {
     final bool isEditing = index != null;
@@ -93,27 +121,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    final title = titleController.text.trim();
-                    final content = contentController.text.trim();
+                  onPressed: () async {
+                    setState(() {
+                      if (isEditing) {
+                        _notes[index] = {
+                          "title": titleController.text.trim(),
+                          "content": contentController.text.trim(),
+                          "date":
+                              _notes[index]["date"] ?? "2026/09/19 - 05:50 ص",
+                        };
+                      } else {
+                        _notes.insert(0, {
+                          "title": titleController.text.trim(),
+                          "content": contentController.text.trim(),
+                          "date": "2026/09/19 - 05:50 ص",
+                        });
+                      }
+                    });
 
-                    if (title.isNotEmpty || content.isNotEmpty) {
-                      setState(() {
-                        if (isEditing) {
-                          _notes[index] = {
-                            "title": title.isEmpty ? "بلا عنوان" : title,
-                            "content": content,
-                            "date": _notes[index]["date"] ?? "18 سبتمبر 2026",
-                          };
-                        } else {
-                          _notes.insert(0, {
-                            "title": title.isEmpty ? "بلا عنوان" : title,
-                            "content": content,
-                            "date": "18 سبتمبر 2026",
-                          });
-                        }
-                      });
-                    }
+                    await _saveNotes();
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
@@ -234,10 +260,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Colors.redAccent,
                             ),
                             tooltip: "حذف",
-                            onPressed: () {
+                            onPressed: () async {
                               setState(() {
                                 _notes.removeAt(index);
                               });
+                              await _saveNotes();
                             },
                           ),
                         ],
